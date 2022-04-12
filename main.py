@@ -8,6 +8,7 @@ from config import settings
 from sqlalchemy.orm import Session
 import crud, models, schemas
 from database import SessionLocal, engine
+from helpers import verify_token
 
 
 models.Base.metadata.create_all(bind=engine)
@@ -57,7 +58,8 @@ def create_job_for_user(
 ):
     return crud.create_user_job(db=db, job=job, user_id=user_id)
 
-@app.get("/jobs/{user_id}", response_model=List[schemas.Job])
+
+@app.get("/jobs/{user_id}", response_model=List[schemas.Job], dependencies=[Depends(verify_token)])
 def read_items(user_id: int, skip: int = 0,  limit: int = 100, db: Session = Depends(get_db)):
     jobs = crud.get_jobs(db, user_id=user_id, skip=skip, limit=limit)
     return jobs
