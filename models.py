@@ -19,6 +19,7 @@ class Job(Base):
     __tablename__ = "jobs"
 
     id = Column(Integer, primary_key=True, index=True)
+    company = Column(String, index=True)
     title = Column(String, index=True)
     description = Column(String, index=True)
     status = Column(String, index=True)

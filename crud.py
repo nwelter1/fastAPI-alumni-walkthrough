@@ -24,8 +24,8 @@ def create_user(db: Session, user: schemas.UserCreate):
     return db_user
 
 
-def get_jobss(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Job).offset(skip).limit(limit).all()
+def get_jobs(db: Session, user_id: int, skip: int = 0, limit: int = 100):
+    return db.query(models.User).filter(models.User.id == user_id).first().jobs
 
 
 def create_user_job(db: Session, job: schemas.JobCreate, user_id: int):
