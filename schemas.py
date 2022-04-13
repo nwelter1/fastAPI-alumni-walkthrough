@@ -24,8 +24,11 @@ class Job(JobBase):
         orm_mode = True
 
 class User(UserBase):
-    id: int
+    id: str
     is_active: bool
     jobs: List[Job] = []
     class Config:
         orm_mode = True
+
+class UserToken(User):
+    token: str
