@@ -58,11 +58,16 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
-# Getting all jobs for one user
+# Create Job for user
 @app.post("/users/{user_id}/jobs/", response_model=schemas.Job)
 def create_job_for_user(
-    user_id: int, job: schemas.JobCreate, db: Session = Depends(get_db)
+    user_id: int, job: schemas.JobCreate, db: Session = Depends(get_db),
+    x_access_token: str = Header(...)
 ):
+    token = x_access_token.split(' ')[1]
+    db_user = crud.get_user(db, user_id=user_id)
+    if token != db_user.token:
+        return HTTPException(status_code=401, detail="token does not match for this user")
     return crud.create_user_job(db=db, job=job, user_id=user_id)
 
 
@@ -81,9 +86,8 @@ def get_token(user_id: str, password: str, db: Session = Depends(get_db)):
 # Get all jobs for a specified user
 @app.get("/jobs/{user_id}", response_model=List[schemas.Job])
 def read_jobs(user_id: str, x_access_token: str = Header(...), skip: int = 0,  limit: int = 100, db: Session = Depends(get_db)):
-    token = x_access_token.split(' ')[1]
-    db_user = crud.get_user(db, user_id=user_id)
-    if token != db_user.token:
-        return HTTPException(status_code=401, detail="token does not match for this user")
-    jobs = crud.get_jobs(db, user_id=user_id, skip=skip, limit=limit)
-    return jobs
+    if verify_token(db=db, token=x_access_token, user_id=user_id):
+        jobs = crud.get_jobs(db, user_id=user_id, skip=skip, limit=limit)
+        return jobs
+    else:
+        return {'eror':'pls'}
