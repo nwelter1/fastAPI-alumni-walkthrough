@@ -1,5 +1,5 @@
 from datetime import datetime
-from fastapi import FastAPI, Request, APIRouter, Depends, HTTPException, Header
+from fastapi import FastAPI, Request, APIRouter, Depends, HTTPException, Header, Form
 from typing import Optional, List
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -91,3 +91,25 @@ def read_jobs(user_id: str, x_access_token: str = Header(...), skip: int = 0,  l
         return jobs
     else:
         return {'eror':'pls'}
+
+
+
+
+# page routes
+@app.get('/loginpage', response_class=HTMLResponse)
+def login(request: Request):
+    print(request.method)
+    return templates.TemplateResponse('pages/login.html', {'request': request})
+
+@app.post('/login')
+async def login_post(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+    print(email,password)
+    db_user = crud.get_user_by_email(db, email=email)
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not db_user.verify_password(password):
+        raise HTTPException(status_code=401, detail="Invalid Password for User")
+    else:
+        return templates.TemplateResponse('pages/profile.html', {'user': db_user})
+
+
