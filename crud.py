@@ -30,7 +30,7 @@ def get_jobs(db: Session, user_id: int, skip: int = 0, limit: int = 100):
     return db.query(models.User).filter(models.User.id == user_id).first().jobs
 
 
-def create_user_job(db: Session, job: schemas.JobCreate, user_id: int):
+def create_user_job(db: Session, job: schemas.JobCreate, user_id: str):
     db_job = models.Job(**job.dict(), owner_id=user_id)
     db.add(db_job)
     db.commit()

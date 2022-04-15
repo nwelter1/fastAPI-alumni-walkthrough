@@ -1,4 +1,5 @@
 from datetime import datetime
+from urllib import request
 from fastapi import FastAPI, Request, APIRouter, Depends, HTTPException, Header, Form
 from typing import Optional, List
 from fastapi.responses import HTMLResponse
@@ -74,7 +75,7 @@ def get_token(user_id: str, password: str, db: Session = Depends(get_db)):
 # Create Job for user
 @app.post("/jobs/{user_id}", response_model=schemas.Job)
 def create_job_for_user(
-    user_id: int, job: schemas.JobCreate, db: Session = Depends(get_db),
+    user_id: str, job: schemas.JobCreate, db: Session = Depends(get_db),
     x_access_token: str = Header(...)
 ):
     token = x_access_token.split(' ')[1]
@@ -97,19 +98,20 @@ def read_jobs(user_id: str, x_access_token: str = Header(...), skip: int = 0,  l
 
 # page routes
 @app.get('/loginpage', response_class=HTMLResponse)
-def login(request: Request):
+def loginpage(request: Request):
     print(request.method)
     return templates.TemplateResponse('pages/login.html', {'request': request})
 
-@app.post('/login')
-async def login_post(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+@app.post('/login/')
+async def login_post(request: Request, email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     print(email,password)
     db_user = crud.get_user_by_email(db, email=email)
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    if not db_user.verify_password(password):
-        raise HTTPException(status_code=401, detail="Invalid Password for User")
-    else:
-        return templates.TemplateResponse('pages/profile.html', {'user': db_user})
+    # if db_user is None:
+    #     raise HTTPException(status_code=404, detail="User not found")
+    # if not db_user.verify_password(password):
+    #     raise HTTPException(status_code=401, detail="Invalid Password for User")
+    # else:
+    token = db_user.token
+    return templates.TemplateResponse('pages/profile.html', {'request':request,'user': db_user, 'token': token})
 
 
