@@ -1,5 +1,5 @@
 from datetime import datetime
-from urllib import request
+
 from fastapi import FastAPI, Request, APIRouter, Depends, HTTPException, Header, Form
 from typing import Optional, List
 from fastapi.responses import HTMLResponse
@@ -106,12 +106,24 @@ def loginpage(request: Request):
 async def login_post(request: Request, email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     print(email,password)
     db_user = crud.get_user_by_email(db, email=email)
-    # if db_user is None:
-    #     raise HTTPException(status_code=404, detail="User not found")
-    # if not db_user.verify_password(password):
-    #     raise HTTPException(status_code=401, detail="Invalid Password for User")
-    # else:
-    token = db_user.token
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not db_user.verify_password(password):
+        raise HTTPException(status_code=401, detail="Invalid Password for User")
+    else:
+        token = db_user.token
     return templates.TemplateResponse('pages/profile.html', {'request':request,'user': db_user, 'token': token})
 
+@app.get('/register')
+async def registerpage(request: Request):
+    return templates.TemplateResponse('pages/register.html', {'request': request})
+
+@app.post('/register/')
+async def register_post(request: Request, email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+    user = schemas.UserCreate(email=email, password=password)
+    db_user = crud.get_user_by_email(db, email=user.email)
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    crud.create_user(db=db, user=user)
+    return templates.TemplateResponse('pages/login.html', {'request':request,'user': db_user})
 
