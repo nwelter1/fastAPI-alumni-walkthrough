@@ -97,6 +97,7 @@ def read_jobs(user_id: str, x_access_token: str = Header(...), skip: int = 0,  l
 
 
 # page routes
+# Login via form input
 @app.get('/loginpage', response_class=HTMLResponse)
 def loginpage(request: Request):
     print(request.method)
@@ -114,6 +115,7 @@ async def login_post(request: Request, email: str = Form(...), password: str = F
         token = db_user.token
     return templates.TemplateResponse('pages/profile.html', {'request':request,'user': db_user, 'token': token})
 
+# Registration via form input
 @app.get('/register')
 async def registerpage(request: Request):
     return templates.TemplateResponse('pages/register.html', {'request': request})
